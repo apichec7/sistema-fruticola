@@ -1,6 +1,9 @@
-
 import os
 from unittest.mock import patch
+
+import pytest
+from app import app as flask_app
+from models import db, Usuario
 
 def test_importar_aplicacion():
     with patch.dict(os.environ, {
@@ -38,11 +41,6 @@ def test_logout_sin_sesion():
 
     assert respuesta.status_code == 302
     assert "/login" in respuesta.headers["Location"]
-
-
-import pytest
-from app import app as flask_app
-from models import db, Usuario
 
 
 @pytest.fixture
