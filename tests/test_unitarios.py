@@ -41,5 +41,3 @@ def test_produccion_y_configuracion(app):
     assert produccion.cantidad_kg == Decimal("12.50")
     assert config.nombre_unidad == "Unidad de producción frutícola"
 
-def test_quality_gate_temporal():
-    assert 1 == 2
