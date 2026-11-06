@@ -1,5 +1,7 @@
 import os
 
+from decimal import Decimal, InvalidOperation
+from xml.sax.saxutils import escape
 from io import BytesIO
 from datetime import datetime
 from flask import send_file
@@ -67,14 +69,21 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=60)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = URL.create(
-    drivername="postgresql+psycopg",
-    username=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    host=os.getenv("DB_HOST", "localhost"),
-    port=int(os.getenv("DB_PORT", "5432")),
-    database=os.getenv("DB_NAME")
-)
+
+database_url_pruebas = os.getenv("TEST_DATABASE_URL")
+
+if database_url_pruebas:
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url_pruebas
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = URL.create(
+        drivername="postgresql+psycopg",
+        username=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST", "localhost"),
+        port=int(os.getenv("DB_PORT", "5432")),
+        database=os.getenv("DB_NAME")
+    )
+
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -1243,7 +1252,7 @@ def cambiar_estado_usuario(id):
 # 22. MÓDULO DE PRODUCCIÓN FRUTÍCOLA
 # ==========================================
 
-from decimal import Decimal, InvalidOperation
+
 
 
 # ==========================================

@@ -1,0 +1,109 @@
+﻿
+name: Calidad SQA
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - run: python -m pip install -r requirements-dev.txt
+
+      - run: python -m compileall -q app.py models.py servicios_alertas.py
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - run: python -m pip install -r requirements-dev.txt
+
+      - name: Validar cobertura minima de modulos probados
+        run: python -m pytest --cov=models --cov=servicios_alertas --cov-branch --cov-report=term-missing --cov-fail-under=60
+
+      - name: Generar cobertura completa para SonarCloud
+        run: python -m pytest --cov=app --cov=models --cov=servicios_alertas --cov-branch --cov-report=xml --cov-report=term-missing --junitxml=pytest-results.xml
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultados-pruebas
+          path: |
+            coverage.xml
+            pytest-results.xml
+
+  analyze:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - run: python -m pip install ruff
+
+      - run: ruff check app.py models.py servicios_alertas.py tests/
+
+  sonar:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: resultados-pruebas
+
+      - name: Analisis SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Quality Gate SonarCloud
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        with:
+          scanMetadataReportFile: .scannerwork/report-task.txt
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  report:
+    needs: [test, analyze, sonar]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resumen del pipeline
+        run: |
+          echo '## Resultado del pipeline SQA' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Pruebas: ${{ needs.test.result }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Analisis Ruff: ${{ needs.analyze.result }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'SonarCloud: ${{ needs.sonar.result }}' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Quality gate
+        if: needs.test.result != 'success' || needs.analyze.result != 'success' || needs.sonar.result != 'success'
+        run: exit 1
