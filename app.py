@@ -1,5 +1,7 @@
 import os
 
+from decimal import Decimal, InvalidOperation
+from xml.sax.saxutils import escape
 from io import BytesIO
 from datetime import datetime
 from flask import send_file
@@ -1243,7 +1245,7 @@ def cambiar_estado_usuario(id):
 # 22. MÓDULO DE PRODUCCIÓN FRUTÍCOLA
 # ==========================================
 
-from decimal import Decimal, InvalidOperation
+
 
 
 # ==========================================
