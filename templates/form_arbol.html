@@ -1,0 +1,76 @@
+
+{% extends "base.html" %}
+
+{% block title %}Formulario de árbol - AgroControl{% endblock %}
+{% block page_title %}Árboles frutales{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h2>
+            {% if arbol %}Editar árbol{% else %}Registrar árbol{% endif %}
+        </h2>
+        <p>Completa la información del árbol frutal.</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Código *</label>
+                    <input type="text" name="codigo"
+                           class="form-control"
+                           maxlength="30"
+                           value="{{ arbol.codigo if arbol else '' }}"
+                           placeholder="MNG-001" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Especie *</label>
+                    <input type="text" name="especie"
+                           class="form-control"
+                           maxlength="80"
+                           value="{{ arbol.especie if arbol else '' }}"
+                           placeholder="Mango" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Variedad</label>
+                    <input type="text" name="variedad"
+                           class="form-control"
+                           maxlength="80"
+                           value="{{ (arbol.variedad or '') if arbol else '' }}">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Ubicación</label>
+                    <input type="text" name="ubicacion"
+                           class="form-control"
+                           maxlength="150"
+                           value="{{ (arbol.ubicacion or '') if arbol else '' }}">
+                </div>
+
+            </div>
+
+            <hr class="my-4">
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Guardar
+            </button>
+
+            <a href="{{ url_for('listar_arboles') }}"
+               class="btn btn-outline-secondary">
+                Cancelar
+            </a>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

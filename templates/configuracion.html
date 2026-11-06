@@ -1,0 +1,208 @@
+
+{% extends "base.html" %}
+
+{% block title %}Configuración - AgroControl{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h2>Configuración del sistema</h2>
+        <p>Administración de la información general de AgroControl.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- FORMULARIO -->
+    <div class="col-lg-8">
+
+        <div class="card">
+
+            <div class="card-header">
+                <i class="bi bi-gear me-2"></i>
+                Información general
+            </div>
+
+            <div class="card-body">
+
+                <form method="POST"
+                      action="{{ url_for('configuracion_sistema') }}">
+
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Nombre del sistema
+                        </label>
+
+                        <input type="text"
+                               name="nombre_sistema"
+                               class="form-control"
+                               maxlength="100"
+                               required
+                               value="{{ configuracion.nombre_sistema if configuracion else 'AgroControl' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Nombre de la unidad agrícola
+                        </label>
+
+                        <input type="text"
+                               name="nombre_unidad"
+                               class="form-control"
+                               maxlength="150"
+                               required
+                               value="{{ configuracion.nombre_unidad if configuracion else 'Unidad de producción frutícola' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Ubicación
+                        </label>
+
+                        <input type="text"
+                               name="ubicacion"
+                               class="form-control"
+                               maxlength="200"
+                               placeholder="Ingrese la ubicación de la unidad agrícola"
+                               value="{{ configuracion.ubicacion or '' if configuracion else '' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Responsable
+                        </label>
+
+                        <input type="text"
+                               name="responsable"
+                               class="form-control"
+                               maxlength="150"
+                               placeholder="Nombre del responsable"
+                               value="{{ configuracion.responsable or '' if configuracion else '' }}">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">
+                            Descripción
+                        </label>
+
+                        <textarea name="descripcion"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Descripción general de la unidad agrícola">{{ configuracion.descripcion or '' if configuracion else '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-floppy me-1"></i>
+                            Guardar cambios
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- INFORMACIÓN -->
+    <div class="col-lg-4">
+
+        <div class="card mb-3">
+
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>
+                Información del sistema
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <small class="text-muted">
+                        Aplicación
+                    </small>
+
+                    <div class="fw-semibold">
+                        AgroControl
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted">
+                        Tecnología
+                    </small>
+
+                    <div>
+                        Python / Flask
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted">
+                        Base de datos
+                    </small>
+
+                    <div>
+                        PostgreSQL
+                    </div>
+                </div>
+
+                <div>
+                    <small class="text-muted">
+                        Última actualización
+                    </small>
+
+                    <div>
+                        {% if configuracion and configuracion.fecha_actualizacion %}
+                            {{ configuracion.fecha_actualizacion.strftime('%d/%m/%Y %H:%M') }}
+                        {% else %}
+                            Sin modificaciones
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-body">
+
+                <div class="d-flex align-items-start gap-3">
+
+                    <i class="bi bi-shield-check text-success fs-3"></i>
+
+                    <div>
+                        <strong>
+                            Acceso administrativo
+                        </strong>
+
+                        <p class="text-muted small mb-0 mt-2">
+                            Esta sección está disponible únicamente
+                            para los usuarios con rol de administrador.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

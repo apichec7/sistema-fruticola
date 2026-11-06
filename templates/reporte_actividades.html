@@ -1,0 +1,364 @@
+
+
+{% extends "base.html" %}
+
+{% block title %}Reporte de actividades{% endblock %}
+
+{% block content %}
+
+<!-- ENCABEZADO -->
+<div class="page-heading">
+    <div>
+        <h2>Reporte de actividades</h2>
+        <p>Seguimiento de los trabajos agrícolas.</p>
+    </div>
+</div>
+
+<!-- NAVEGACIÓN -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+
+    <a href="{{ url_for('listar_reportes') }}"
+       class="btn btn-outline-secondary">
+        Producción
+    </a>
+
+    <a href="{{ url_for('reporte_actividades') }}"
+       class="btn btn-primary">
+        Actividades
+    </a>
+
+    <a href="{{ url_for('reporte_alertas') }}"
+       class="btn btn-outline-secondary">
+        Alertas
+    </a>
+
+</div>
+
+<!-- FILTROS -->
+<div class="card mb-4">
+
+    <div class="card-header">
+        <i class="bi bi-funnel me-2"></i>
+        Filtros de búsqueda
+    </div>
+
+    <div class="card-body">
+
+        <form method="GET"
+              action="{{ url_for('reporte_actividades') }}"
+              class="row g-3 align-items-end">
+
+            <div class="col-md-4">
+                <label class="form-label">Estado</label>
+
+                <select name="estado" class="form-select">
+                    <option value="">Todos</option>
+
+                    <option value="pendiente"
+                        {% if estado == 'pendiente' %}selected{% endif %}>
+                        Pendiente
+                    </option>
+
+                    <option value="completada"
+                        {% if estado == 'completada' %}selected{% endif %}>
+                        Completada
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Árbol</label>
+
+                <select name="arbol_id" class="form-select">
+                    <option value="">Todos los árboles</option>
+
+                    {% for arbol in arboles %}
+                    <option value="{{ arbol.id }}"
+                        {% if arbol_id == arbol.id %}selected{% endif %}>
+                        {{ arbol.codigo }} - {{ arbol.especie }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Por página</label>
+
+                <select name="por_pagina" class="form-select">
+                    {% for cantidad in [10, 20, 50] %}
+                    <option value="{{ cantidad }}"
+                        {% if por_pagina == cantidad %}selected{% endif %}>
+                        {{ cantidad }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+
+                <button type="submit" class="btn btn-primary">
+                    Buscar
+                </button>
+
+                <a href="{{ url_for('reporte_actividades') }}"
+                   class="btn btn-outline-secondary">
+                    Limpiar
+                </a>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- INDICADORES -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                Total de actividades
+            </div>
+            <div class="stat-number">
+                {{ total_actividades }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                Pendientes
+            </div>
+            <div class="stat-number">
+                {{ pendientes }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                Completadas
+            </div>
+            <div class="stat-number">
+                {{ completadas }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                Vencidas
+            </div>
+            <div class="stat-number text-danger">
+                {{ vencidas }}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- EXPORTACIÓN CON PERMISOS -->
+{% if tiene_rol('administrador', 'supervisor') %}
+
+<div class="d-flex flex-wrap justify-content-end gap-2 mb-3">
+
+    <a href="{{ url_for(
+        'exportar_actividades_pdf',
+        estado=estado,
+        arbol_id=arbol_id or ''
+    ) }}"
+       class="btn btn-outline-danger">
+
+        <i class="bi bi-file-earmark-pdf me-1"></i>
+        Exportar PDF
+
+    </a>
+
+    <a href="{{ url_for(
+        'exportar_actividades_excel',
+        estado=estado,
+        arbol_id=arbol_id or ''
+    ) }}"
+       class="btn btn-outline-success">
+
+        <i class="bi bi-file-earmark-excel me-1"></i>
+        Exportar Excel
+
+    </a>
+
+</div>
+
+{% endif %}
+
+<!-- TABLA DE RESULTADOS -->
+<div class="card">
+
+    <div class="card-header">
+        <i class="bi bi-clipboard-check me-2"></i>
+        Resultados del reporte
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Árbol</th>
+                        <th>Actividad</th>
+                        <th>Responsable</th>
+                        <th>Fecha programada</th>
+                        <th>Fecha realizada</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for actividad in actividades %}
+
+                    <tr>
+
+                        <td>
+                            {{ (paginacion.page - 1) * paginacion.per_page + loop.index }}
+                        </td>
+
+                        <td>
+                            {{ actividad.arbol.codigo if actividad.arbol else '-' }}
+                        </td>
+
+                        <td>
+                            {{ actividad.tipo }}
+                        </td>
+
+                        <td>
+                            {{ actividad.responsable.nombre if actividad.responsable else '-' }}
+                        </td>
+
+                        <td>
+                            {{ actividad.fecha_programada.strftime('%d/%m/%Y') if actividad.fecha_programada else '-' }}
+                        </td>
+
+                        <td>
+                            {{ actividad.fecha_realizada.strftime('%d/%m/%Y') if actividad.fecha_realizada else '-' }}
+                        </td>
+
+                        <td>
+
+                            {% if actividad.estado == 'completada' %}
+
+                                <span class="badge bg-success">
+                                    Completada
+                                </span>
+
+                            {% elif actividad.estado == 'pendiente'
+                                and actividad.fecha_programada
+                                and actividad.fecha_programada < hoy %}
+
+                                <span class="badge bg-danger">
+                                    Vencida
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Pendiente
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="7"
+                            class="text-center text-muted py-4">
+                            No se encontraron actividades.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- PAGINACIÓN -->
+        {% if paginacion.pages > 1 %}
+
+        <nav class="mt-3">
+
+            <ul class="pagination justify-content-center">
+
+                <!-- ANTERIOR -->
+                <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+
+                    <a class="page-link"
+                       href="{% if paginacion.has_prev %}{{ url_for('reporte_actividades', pagina=paginacion.prev_num, estado=estado, arbol_id=arbol_id or '', por_pagina=por_pagina) }}{% else %}#{% endif %}">
+                        Anterior
+                    </a>
+
+                </li>
+
+                <!-- NÚMEROS DE PÁGINA -->
+                {% for numero in paginacion.iter_pages() %}
+
+                    {% if numero %}
+
+                    <li class="page-item {% if numero == paginacion.page %}active{% endif %}">
+
+                        <a class="page-link"
+                           href="{{ url_for('reporte_actividades', pagina=numero, estado=estado, arbol_id=arbol_id or '', por_pagina=por_pagina) }}">
+                            {{ numero }}
+                        </a>
+
+                    </li>
+
+                    {% else %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+
+                    {% endif %}
+
+                {% endfor %}
+
+                <!-- SIGUIENTE -->
+                <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+
+                    <a class="page-link"
+                       href="{% if paginacion.has_next %}{{ url_for('reporte_actividades', pagina=paginacion.next_num, estado=estado, arbol_id=arbol_id or '', por_pagina=por_pagina) }}{% else %}#{% endif %}">
+                        Siguiente
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </nav>
+
+        {% endif %}
+
+        <!-- CONTADOR -->
+        <div class="text-muted small">
+            Mostrando {{ actividades|length }} de
+            {{ paginacion.total }} registros
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

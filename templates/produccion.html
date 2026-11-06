@@ -1,0 +1,305 @@
+
+{% extends "base.html" %}
+
+{% block title %}Producción - AgroControl{% endblock %}
+
+{% block content %}
+
+<!-- ENCABEZADO -->
+<div class="page-heading">
+    <div>
+        <h2>Producción frutícola</h2>
+        <p>Registro y seguimiento de cosechas.</p>
+    </div>
+
+    {% if tiene_rol('administrador', 'supervisor') %}
+    <a href="{{ url_for('nueva_produccion') }}"
+       class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>
+        Nueva cosecha
+    </a>
+    {% endif %}
+</div>
+
+
+<!-- INDICADORES -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-basket me-2"></i>
+                Producción total
+            </div>
+            <div class="stat-number">
+                {{ "%.2f"|format(total_kg) }} kg
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-calendar-check me-2"></i>
+                Cosechas registradas
+            </div>
+            <div class="stat-number">
+                {{ total_cosechas }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-bar-chart me-2"></i>
+                Promedio por cosecha
+            </div>
+            <div class="stat-number">
+                {{ "%.2f"|format(promedio_kg) }} kg
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- FILTROS -->
+<div class="card mb-4">
+
+    <div class="card-body">
+
+        <form method="GET"
+              action="{{ url_for('listar_produccion') }}"
+              class="row g-3 align-items-end">
+
+            <div class="col-md-6">
+                <label class="form-label">
+                    Filtrar por árbol
+                </label>
+
+                <select name="arbol_id"
+                        class="form-select">
+
+                    <option value="">Todos los árboles</option>
+
+                    {% for arbol in arboles %}
+                    <option value="{{ arbol.id }}"
+                        {% if arbol_id == arbol.id %}selected{% endif %}>
+                        {{ arbol.codigo }} - {{ arbol.especie }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">
+                    Registros por página
+                </label>
+
+                <select name="por_pagina"
+                        class="form-select">
+
+                    {% for cantidad in [10, 20, 50] %}
+                    <option value="{{ cantidad }}"
+                        {% if por_pagina == cantidad %}selected{% endif %}>
+                        {{ cantidad }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        <i class="bi bi-search"></i>
+                        Buscar
+                    </button>
+
+                    <a href="{{ url_for('listar_produccion') }}"
+                       class="btn btn-outline-secondary">
+                        Limpiar
+                    </a>
+
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- TABLA -->
+<div class="card">
+
+    <div class="card-header">
+        <i class="bi bi-basket me-2"></i>
+        Historial de cosechas
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Árbol</th>
+                        <th>Especie</th>
+                        <th>Fecha</th>
+                        <th>Cantidad</th>
+                        <th>Calidad</th>
+                        <th>Responsable</th>
+
+                        {% if tiene_rol('administrador', 'supervisor') %}
+                        <th>Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for produccion in producciones %}
+
+                    <tr>
+
+                        <td class="fw-semibold">
+                            {{ (paginacion.page - 1) * paginacion.per_page + loop.index }}
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ produccion.arbol.codigo }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ produccion.arbol.especie }}
+                        </td>
+
+                        <td>
+                            {{ produccion.fecha_cosecha.strftime('%d/%m/%Y') }}
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ "%.2f"|format(produccion.cantidad_kg) }} kg
+                            </strong>
+                        </td>
+
+                        <td>
+                            {% if produccion.calidad == 'buena' %}
+                                <span class="badge bg-success">
+                                    Buena
+                                </span>
+                            {% elif produccion.calidad == 'regular' %}
+                                <span class="badge bg-warning text-dark">
+                                    Regular
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    Mala
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ produccion.responsable.nombre if produccion.responsable else '-' }}
+                        </td>
+
+                        {% if tiene_rol('administrador', 'supervisor') %}
+                        <td>
+                            <a href="{{ url_for('editar_produccion', id=produccion.id) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                                Editar
+                            </a>
+                        </td>
+                        {% endif %}
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="{% if tiene_rol('administrador', 'supervisor') %}8{% else %}7{% endif %}"
+                            class="text-center text-muted py-4">
+                            No hay cosechas registradas.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- PAGINACIÓN -->
+        {% if paginacion.pages > 1 %}
+
+        <nav class="mt-3">
+
+            <ul class="pagination justify-content-center mb-0">
+
+                <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{% if paginacion.has_prev %}{{ url_for('listar_produccion', pagina=paginacion.prev_num, arbol_id=arbol_id or '', por_pagina=por_pagina) }}{% else %}#{% endif %}">
+                        Anterior
+                    </a>
+                </li>
+
+                {% for numero in paginacion.iter_pages() %}
+
+                    {% if numero %}
+
+                    <li class="page-item {% if numero == paginacion.page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('listar_produccion', pagina=numero, arbol_id=arbol_id or '', por_pagina=por_pagina) }}">
+                            {{ numero }}
+                        </a>
+                    </li>
+
+                    {% else %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+
+                    {% endif %}
+
+                {% endfor %}
+
+                <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{% if paginacion.has_next %}{{ url_for('listar_produccion', pagina=paginacion.next_num, arbol_id=arbol_id or '', por_pagina=por_pagina) }}{% else %}#{% endif %}">
+                        Siguiente
+                    </a>
+                </li>
+
+            </ul>
+
+        </nav>
+
+        {% endif %}
+
+        <div class="text-muted small mt-3">
+            Mostrando {{ producciones|length }} de
+            {{ paginacion.total }} registros
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

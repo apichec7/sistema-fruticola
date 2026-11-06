@@ -1,0 +1,426 @@
+
+:root {
+    --azul-oscuro: #103C3B;
+    --azul-principal: #087F72;
+    --azul-claro: #E1F3EE;
+    --fondo: #EAF6F3;
+    --texto: #23423F;
+    --sidebar-width: 255px;
+}
+
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+}
+
+/* MENÚ LATERAL */
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1050;
+    background: var(--azul-oscuro);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 25px 20px;
+    color: white;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+}
+
+.sidebar-brand > i {
+    font-size: 30px;
+    color: #9FC5FF;
+}
+
+.sidebar-brand strong,
+.sidebar-brand small {
+    display: block;
+}
+
+.sidebar-brand small {
+    color: #B7C9E2;
+    font-size: 12px;
+}
+
+.sidebar-section {
+    padding: 20px 22px 8px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #91A8C7;
+    font-weight: 700;
+}
+
+.sidebar-nav {
+    padding: 0 10px;
+}
+
+.nav-link-custom {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 12px 14px;
+    margin: 3px 0;
+    border-radius: 8px;
+    color: #C7D5E9;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background .2s, color .2s;
+}
+
+.nav-link-custom i {
+    font-size: 18px;
+}
+
+.nav-link-custom:hover,
+.nav-link-custom.active {
+    background: var(--azul-principal);
+    color: white;
+}
+
+.nav-link-custom.active {
+    font-weight: 600;
+}
+
+.nav-disabled {
+    opacity: .55;
+    cursor: default;
+}
+
+.nav-disabled small {
+    margin-left: auto;
+    font-size: 10px;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding: 20px;
+    font-size: 12px;
+    color: #AFC2DD;
+    border-top: 1px solid rgba(255,255,255,.1);
+}
+
+/* ÁREA PRINCIPAL */
+.main-wrapper {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    height: 76px;
+    background: white;
+    border-bottom: 1px solid #DFE6EF;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    gap: 15px;
+}
+
+.topbar-left,
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.topbar h5 {
+    font-weight: 700;
+    color: var(--azul-oscuro);
+}
+
+.topbar-status {
+    color: #64748B;
+    font-size: 13px;
+}
+
+.topbar-status i {
+    color: #22A06B;
+    font-size: 9px;
+    margin-right: 5px;
+}
+
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    background: var(--azul-claro);
+    color: var(--azul-principal);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+}
+
+.menu-toggle {
+    display: none;
+    border: 0;
+    background: transparent;
+    color: var(--azul-oscuro);
+    font-size: 27px;
+}
+
+.content-area {
+    padding: 30px;
+    flex: 1;
+}
+
+.app-footer {
+    text-align: center;
+    padding: 18px;
+    color: #8290A5;
+    font-size: 12px;
+}
+
+/* TARJETAS Y BOTONES */
+.card {
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(23,43,77,.04);
+}
+
+.card-header {
+    background: white;
+    border-bottom: 1px solid #E2E8F0;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--azul-principal);
+    border-color: var(--azul-principal);
+}
+
+.btn-primary:hover {
+    background: #1D4F91;
+    border-color: #1D4F91;
+}
+
+.table thead th {
+    background: #F4F7FC;
+    color: #536581;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 24px;
+}
+
+.page-heading h2 {
+    font-size: 23px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.page-heading p {
+    color: #64748B;
+    margin: 5px 0 0;
+}
+
+.stat-card {
+    padding: 22px;
+    height: 100%;
+}
+
+.stat-number {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--azul-oscuro);
+}
+
+/* RESPONSIVE */
+.sidebar-overlay {
+    display: none;
+}
+
+@media (max-width: 991px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform .25s ease;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.45);
+        z-index: 1040;
+    }
+
+    .main-wrapper {
+        margin-left: 0;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .topbar {
+        padding: 0 18px;
+    }
+
+    .content-area {
+        padding: 20px 15px;
+    }
+
+    .topbar-status {
+        display: none;
+    }
+}
+
+@media (max-width: 575px) {
+    .page-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .page-heading .btn {
+        width: 100%;
+    }
+
+    .topbar h5 {
+        font-size: 16px;
+    }
+}
+
+
+/* ========================================
+   TEMA VERDE ESMERALDA - AGROCONTROL
+   ======================================== */
+
+/* Menú lateral */
+.sidebar {
+    background: #103C3B;
+}
+
+.sidebar-brand > i {
+    color: #91E2CD;
+}
+
+.sidebar-brand small,
+.sidebar-footer {
+    color: #B4D6CE;
+}
+
+.sidebar-section {
+    color: #A4CFC5;
+}
+
+.nav-link-custom {
+    color: #D1E9E3;
+}
+
+.nav-link-custom:hover,
+.nav-link-custom.active {
+    background: #087F72;
+    color: #FFFFFF;
+}
+
+/* Barra superior */
+.topbar {
+    background: #FFFFFF;
+    border-bottom: 1px solid #D7E8E3;
+}
+
+.topbar h5 {
+    color: #103C3B;
+}
+
+.user-avatar {
+    background: #E1F3EE;
+    color: #087F72;
+}
+
+/* Contenido */
+.card {
+    border-color: #DCEBE6;
+    box-shadow: 0 3px 15px rgba(16, 60, 59, 0.05);
+}
+
+.card-header {
+    border-bottom-color: #DCEBE6;
+}
+
+.stat-number {
+    color: #103C3B;
+}
+
+.table thead th {
+    background: #F0F8F5;
+    color: #426C63;
+}
+
+/* Botones principales */
+.btn-primary {
+    background: #087F72;
+    border-color: #087F72;
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible,
+.btn-primary:active {
+    background: #06675D !important;
+    border-color: #06675D !important;
+}
+
+/* Botones secundarios */
+.btn-outline-primary {
+    color: #087F72;
+    border-color: #087F72;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:active {
+    background: #087F72 !important;
+    border-color: #087F72 !important;
+    color: #FFFFFF !important;
+}
+
+/* Campos de formulario */
+.form-control:focus,
+.form-select:focus {
+    border-color: #087F72;
+    box-shadow: 0 0 0 0.2rem rgba(8, 127, 114, 0.15);
+}
+
+/* Enlaces */
+.content-area a:not(.btn) {
+    color: #087F72;
+}
+
+/* Accesibilidad: foco del menú */
+.nav-link-custom:focus-visible,
+.menu-toggle:focus-visible {
+    outline: 2px solid #91E2CD;
+    outline-offset: 2px;
+}

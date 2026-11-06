@@ -1,0 +1,264 @@
+
+{% extends "base.html" %}
+
+{% block title %}Alertas - AgroControl{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================
+     ENCABEZADO
+========================================== -->
+<div class="page-heading">
+
+    <div>
+        <h2>Alertas agrícolas</h2>
+        <p>Seguimiento de actividades próximas y vencidas.</p>
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     INDICADORES
+========================================== -->
+<div class="row g-3 mb-4">
+
+    <!-- ALERTAS PENDIENTES -->
+    <div class="col-md-6">
+
+        <div class="card stat-card">
+
+            <div class="text-muted mb-2">
+                <i class="bi bi-bell me-2"></i>
+                Alertas pendientes
+            </div>
+
+            <div class="stat-number">
+                {{ pendientes }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ALERTAS ATENDIDAS -->
+    <div class="col-md-6">
+
+        <div class="card stat-card">
+
+            <div class="text-muted mb-2">
+                <i class="bi bi-check-circle me-2"></i>
+                Alertas atendidas
+            </div>
+
+            <div class="stat-number">
+                {{ atendidas }}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     TABLA DE ALERTAS
+========================================== -->
+<div class="card">
+
+    <div class="card-header">
+
+        <i class="bi bi-bell me-2"></i>
+        Historial de alertas
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+                        <th>No.</th>
+                        <th>Árbol</th>
+                        <th>Alerta</th>
+                        <th>Descripción</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+
+                        <!-- SOLO ADMINISTRADOR Y SUPERVISOR -->
+                        {% if tiene_rol('administrador', 'supervisor') %}
+                        <th>Acciones</th>
+                        {% endif %}
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for alerta in alertas %}
+
+                    <tr>
+
+                        <!-- NÚMERO CORRELATIVO -->
+                        <td class="fw-semibold">
+
+                            {{ (paginacion.page - 1) * paginacion.per_page + loop.index }}
+
+                        </td>
+
+
+                        <!-- ÁRBOL -->
+                        <td>
+
+                            {{ alerta.arbol.codigo if alerta.arbol else '-' }}
+
+                        </td>
+
+
+                        <!-- TÍTULO -->
+                        <td>
+
+                            <strong>
+                                {{ alerta.titulo }}
+                            </strong>
+
+                        </td>
+
+
+                        <!-- DESCRIPCIÓN -->
+                        <td>
+
+                            {{ alerta.mensaje }}
+
+                        </td>
+
+
+                        <!-- TIPO DE ALERTA -->
+                        <td>
+
+                            {% if alerta.tipo == 'vencida' %}
+
+                                <span class="badge bg-danger">
+                                    Vencida
+                                </span>
+
+                            {% elif alerta.tipo == 'proxima' %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Próxima
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ alerta.tipo }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- ESTADO -->
+                        <td>
+
+                            {% if alerta.estado == 'atendida' %}
+
+                                <span class="badge bg-success">
+                                    Atendida
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Pendiente
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- ==================================
+                             ACCIONES SEGÚN EL ROL
+                        ================================== -->
+                        {% if tiene_rol('administrador', 'supervisor') %}
+
+                        <td>
+
+                            {% if alerta.estado != 'atendida' %}
+
+                                <!-- ATENDER ALERTA -->
+                                <form method="POST"
+                                      action="{{ url_for('atender_alerta', id=alerta.id) }}"
+                                      onsubmit="return confirm('¿Marcar esta alerta como atendida?');">
+
+                                    <!-- PROTECCIÓN CSRF -->
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="{{ csrf_token() }}">
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-success">
+
+                                        <i class="bi bi-check-circle"></i>
+                                        Atender
+
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                <span class="text-muted">
+
+                                    <i class="bi bi-check2-circle me-1"></i>
+                                    Finalizada
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        {% endif %}
+
+                    </tr>
+
+
+                    {% else %}
+
+                    <!-- SIN ALERTAS -->
+                    <tr>
+
+                        <td colspan="{% if tiene_rol('administrador', 'supervisor') %}7{% else %}6{% endif %}"
+                            class="text-center text-muted py-4">
+
+                            <i class="bi bi-bell-slash me-1"></i>
+                            No hay alertas registradas.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

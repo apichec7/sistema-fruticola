@@ -1,0 +1,197 @@
+
+{% extends "base.html" %}
+
+{% block title %}Cosecha - AgroControl{% endblock %}
+
+{% block content %}
+
+{% set editando = produccion is defined and produccion is not none %}
+
+<div class="page-heading">
+
+    <div>
+        <h2>
+            {% if editando %}
+                Editar cosecha
+            {% else %}
+                Registrar cosecha
+            {% endif %}
+        </h2>
+
+        <p>
+            Ingresa la información de producción del árbol.
+        </p>
+    </div>
+
+    <a href="{{ url_for('listar_produccion') }}"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>
+        Volver
+    </a>
+
+</div>
+
+
+<div class="card">
+
+    <div class="card-body">
+
+        <form method="POST"
+              action="{% if editando %}{{ url_for('editar_produccion', id=produccion.id) }}{% else %}{{ url_for('nueva_produccion') }}{% endif %}">
+
+            <!-- CSRF -->
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token() }}">
+
+            <div class="row g-3">
+
+                <!-- ÁRBOL -->
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Árbol *
+                    </label>
+
+                    <select name="arbol_id"
+                            class="form-select"
+                            required>
+
+                        <option value="">
+                            Selecciona un árbol
+                        </option>
+
+                        {% for arbol in arboles %}
+
+                        <option value="{{ arbol.id }}"
+                            {% if editando and produccion.arbol_id == arbol.id %}selected{% endif %}>
+
+                            {{ arbol.codigo }} - {{ arbol.especie }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- FECHA -->
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Fecha de cosecha *
+                    </label>
+
+                    <input type="date"
+                           name="fecha_cosecha"
+                           class="form-control"
+                           value="{% if editando %}{{ produccion.fecha_cosecha.isoformat() }}{% endif %}"
+                           required>
+
+                </div>
+
+
+                <!-- CANTIDAD -->
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Cantidad cosechada (kg) *
+                    </label>
+
+                    <input type="number"
+                           name="cantidad_kg"
+                           class="form-control"
+                           min="0.01"
+                           max="99999999.99"
+                           step="0.01"
+                           placeholder="Ejemplo: 25.50"
+                           value="{% if editando %}{{ produccion.cantidad_kg }}{% endif %}"
+                           required>
+
+                </div>
+
+
+                <!-- CALIDAD -->
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Calidad de la cosecha *
+                    </label>
+
+                    <select name="calidad"
+                            class="form-select"
+                            required>
+
+                        <option value="">
+                            Selecciona la calidad
+                        </option>
+
+                        <option value="buena"
+                            {% if editando and produccion.calidad == 'buena' %}selected{% endif %}>
+                            Buena
+                        </option>
+
+                        <option value="regular"
+                            {% if editando and produccion.calidad == 'regular' %}selected{% endif %}>
+                            Regular
+                        </option>
+
+                        <option value="mala"
+                            {% if editando and produccion.calidad == 'mala' %}selected{% endif %}>
+                            Mala
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- OBSERVACIONES -->
+                <div class="col-12">
+
+                    <label class="form-label">
+                        Observaciones
+                    </label>
+
+                    <textarea name="observaciones"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Escribe detalles de la cosecha...">{% if editando %}{{ produccion.observaciones or '' }}{% endif %}</textarea>
+
+                </div>
+
+            </div>
+
+
+            <!-- BOTONES -->
+            <div class="d-flex justify-content-end gap-2 mt-4">
+
+                <a href="{{ url_for('listar_produccion') }}"
+                   class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="bi bi-save me-1"></i>
+
+                    {% if editando %}
+                        Guardar cambios
+                    {% else %}
+                        Registrar cosecha
+                    {% endif %}
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

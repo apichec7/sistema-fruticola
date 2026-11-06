@@ -1,0 +1,241 @@
+
+{% extends "base.html" %}
+
+{% block title %}Usuarios - AgroControl{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>Gestión de usuarios</h2>
+        <p class="text-muted">
+            Administración de cuentas y roles del sistema.
+        </p>
+    </div>
+
+    <a href="{{ url_for('nuevo_usuario') }}"
+       class="btn btn-success">
+        <i class="bi bi-person-plus me-1"></i>
+        Nuevo usuario
+    </a>
+</div>
+
+<!-- INDICADORES -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted">Total usuarios</div>
+            <div class="stat-number">{{ total }}</div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted">Activos</div>
+            <div class="stat-number">{{ activos }}</div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted">Inactivos</div>
+            <div class="stat-number">{{ inactivos }}</div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card">
+    <div class="card-header py-3">
+        <h5 class="mb-0">
+            <i class="bi bi-people me-2"></i>
+            Usuarios registrados
+        </h5>
+    </div>
+
+    <div class="card-body">
+
+        <!-- BUSCADOR -->
+        <form method="GET"
+              action="{{ url_for('listar_usuarios') }}"
+              class="row g-3 mb-4">
+
+            <div class="col-md-7">
+                <input type="text"
+                       name="buscar"
+                       class="form-control"
+                       placeholder="Buscar por nombre, usuario o correo"
+                       value="{{ buscar }}">
+            </div>
+
+            <div class="col-md-2">
+                <select name="por_pagina" class="form-select">
+                    {% for cantidad in [10, 20, 50] %}
+                    <option value="{{ cantidad }}"
+                        {% if por_pagina == cantidad %}selected{% endif %}>
+                        {{ cantidad }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    Buscar
+                </button>
+
+                <a href="{{ url_for('listar_usuarios') }}"
+                   class="btn btn-outline-secondary">
+                    Limpiar
+                </a>
+            </div>
+
+        </form>
+
+        <p class="text-muted small">
+            Mostrando {{ usuarios|length }}
+            de {{ paginacion.total }} registros
+        </p>
+
+        <!-- TABLA -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Nombre</th>
+                        <th>Usuario</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>
+                            {{ (paginacion.page - 1) * paginacion.per_page + loop.index }}
+                        </td>
+
+                        <td>{{ usuario.nombre }}</td>
+                        <td>{{ usuario.nombre_usuario }}</td>
+                        <td>{{ usuario.correo }}</td>
+
+                        <td>
+                            {{ usuario.rol|capitalize }}
+                        </td>
+
+                        <td>
+                            {% if usuario.activo %}
+                                <span class="badge bg-success">
+                                    Activo
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    Inactivo
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="d-flex gap-2">
+
+                                <a href="{{ url_for('editar_usuario', id=usuario.id) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                {% if usuario.id != session.get('usuario_id') %}
+                                <form method="POST"
+                                      action="{{ url_for('cambiar_estado_usuario', id=usuario.id) }}">
+
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="{{ csrf_token() }}">
+
+                                    <button type="submit"
+                                            class="btn btn-sm {% if usuario.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                                            onclick="return confirm('¿Cambiar el estado de este usuario?')">
+
+                                        {% if usuario.activo %}
+                                            <i class="bi bi-person-x"></i>
+                                        {% else %}
+                                            <i class="bi bi-person-check"></i>
+                                        {% endif %}
+
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="7"
+                            class="text-center text-muted py-4">
+                            No se encontraron usuarios.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        <!-- PAGINACIÓN -->
+        {% if paginacion.pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-end">
+
+                <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('listar_usuarios',
+                           pagina=paginacion.prev_num,
+                           buscar=buscar,
+                           por_pagina=por_pagina) if paginacion.has_prev else '#' }}">
+                        Anterior
+                    </a>
+                </li>
+
+                {% for numero in paginacion.iter_pages() %}
+                    {% if numero %}
+                    <li class="page-item {% if numero == paginacion.page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('listar_usuarios',
+                               pagina=numero,
+                               buscar=buscar,
+                               por_pagina=por_pagina) }}">
+                            {{ numero }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('listar_usuarios',
+                           pagina=paginacion.next_num,
+                           buscar=buscar,
+                           por_pagina=por_pagina) if paginacion.has_next else '#' }}">
+                        Siguiente
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,84 @@
+
+{% extends "base.html" %}
+
+{% block title %}Nueva actividad - AgroControl{% endblock %}
+{% block page_title %}Actividades agrícolas{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h2>Registrar actividad</h2>
+        <p>Programa una nueva tarea para un árbol frutal.</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-4">
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Árbol *</label>
+                    <select name="arbol_id"
+                            class="form-select" required>
+                        <option value="">Seleccionar árbol</option>
+
+                        {% for arbol in arboles %}
+                        <option value="{{ arbol.id }}">
+                            {{ arbol.codigo }} - {{ arbol.especie }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Tipo de actividad *</label>
+                    <select name="tipo" class="form-select" required>
+                        <option value="">Seleccionar actividad</option>
+                        <option value="Riego">Riego</option>
+                        <option value="Fertilización">Fertilización</option>
+                        <option value="Poda">Poda</option>
+                        <option value="Control de plagas">Control de plagas</option>
+                        <option value="Inspección">Inspección</option>
+                        <option value="Cosecha">Cosecha</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Fecha programada *</label>
+                    <input type="date"
+                           name="fecha_programada"
+                           class="form-control" required>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Descripción</label>
+                    <textarea name="descripcion"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Describe la actividad..."></textarea>
+                </div>
+
+            </div>
+
+            <hr class="my-4">
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i>
+                Guardar actividad
+            </button>
+
+            <a href="{{ url_for('listar_actividades') }}"
+               class="btn btn-outline-secondary">
+                Cancelar
+            </a>
+
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,496 @@
+
+{% extends "base.html" %}
+
+{% block title %}Reportes{% endblock %}
+
+{% block content %}
+
+<!-- ENCABEZADO -->
+<div class="page-heading">
+    <div>
+        <h2>Reportes de producción</h2>
+        <p>Consulta y análisis de cosechas registradas.</p>
+    </div>
+</div>
+
+<!-- TIPOS DE REPORTES -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('listar_reportes') }}" class="btn btn-primary">Producción</a>
+    <a href="{{ url_for('reporte_actividades') }}" class="btn btn-outline-secondary">Actividades</a>
+    <a href="{{ url_for('reporte_alertas') }}" class="btn btn-outline-secondary">Alertas</a>
+</div>
+
+<!-- ==========================================
+     FILTROS DE BÚSQUEDA
+========================================== -->
+<div class="card mb-4">
+
+    <div class="card-header">
+        <i class="bi bi-funnel me-2"></i>
+        Filtros de búsqueda
+    </div>
+
+    <div class="card-body">
+
+        <form method="GET"
+              action="{{ url_for('listar_reportes') }}">
+
+            <div class="row g-3">
+
+                <!-- FECHA INICIAL -->
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Fecha inicial
+                    </label>
+
+                    <input type="date"
+                           name="fecha_inicio"
+                           class="form-control"
+                           value="{{ fecha_inicio }}">
+                </div>
+
+                <!-- FECHA FINAL -->
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Fecha final
+                    </label>
+
+                    <input type="date"
+                           name="fecha_fin"
+                           class="form-control"
+                           value="{{ fecha_fin }}">
+                </div>
+
+                <!-- ÁRBOL -->
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Árbol
+                    </label>
+
+                    <select name="arbol_id"
+                            class="form-select">
+
+                        <option value="">
+                            Todos los árboles
+                        </option>
+
+                        {% for arbol in arboles %}
+                        <option value="{{ arbol.id }}"
+                            {% if arbol_id == arbol.id %}selected{% endif %}>
+                            {{ arbol.codigo }} - {{ arbol.especie }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <!-- ESPECIE -->
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Especie
+                    </label>
+
+                    <select name="especie"
+                            class="form-select">
+
+                        <option value="">
+                            Todas las especies
+                        </option>
+
+                        {% for item in especies %}
+                        <option value="{{ item }}"
+                            {% if especie == item %}selected{% endif %}>
+                            {{ item }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <!-- CALIDAD -->
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Calidad
+                    </label>
+
+                    <select name="calidad"
+                            class="form-select">
+
+                        <option value="">
+                            Todas
+                        </option>
+
+                        <option value="buena"
+                            {% if calidad == 'buena' %}selected{% endif %}>
+                            Buena
+                        </option>
+
+                        <option value="regular"
+                            {% if calidad == 'regular' %}selected{% endif %}>
+                            Regular
+                        </option>
+
+                        <option value="mala"
+                            {% if calidad == 'mala' %}selected{% endif %}>
+                            Mala
+                        </option>
+
+                    </select>
+                </div>
+
+                <!-- REGISTROS POR PÁGINA -->
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Registros por página
+                    </label>
+
+                    <select name="por_pagina"
+                            class="form-select">
+
+                        {% for cantidad in [10, 20, 50] %}
+                        <option value="{{ cantidad }}"
+                            {% if por_pagina == cantidad %}selected{% endif %}>
+                            {{ cantidad }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <!-- BOTONES -->
+                <div class="col-md-6 d-flex align-items-end gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-search me-1"></i>
+                        Buscar
+
+                    </button>
+
+                    <a href="{{ url_for('listar_reportes') }}"
+                       class="btn btn-outline-secondary">
+
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                        Limpiar
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     INDICADORES DE PRODUCCIÓN
+========================================== -->
+<div class="row g-3 mb-4">
+
+    <!-- PRODUCCIÓN TOTAL -->
+    <div class="col-md-4">
+
+        <div class="card stat-card">
+
+            <div class="text-muted mb-2">
+                <i class="bi bi-basket me-2"></i>
+                Producción filtrada
+            </div>
+
+            <div class="stat-number">
+                {{ "%.2f"|format(total_kg) }} kg
+            </div>
+
+            <small class="text-muted">
+                Total de kilogramos
+            </small>
+
+        </div>
+
+    </div>
+
+    <!-- COSECHAS -->
+    <div class="col-md-4">
+
+        <div class="card stat-card">
+
+            <div class="text-muted mb-2">
+                <i class="bi bi-calendar-check me-2"></i>
+                Cosechas encontradas
+            </div>
+
+            <div class="stat-number">
+                {{ total_cosechas }}
+            </div>
+
+            <small class="text-muted">
+                Registros encontrados
+            </small>
+
+        </div>
+
+    </div>
+
+    <!-- PROMEDIO -->
+    <div class="col-md-4">
+
+        <div class="card stat-card">
+
+            <div class="text-muted mb-2">
+                <i class="bi bi-graph-up me-2"></i>
+                Promedio por cosecha
+            </div>
+
+            <div class="stat-number">
+                {{ "%.2f"|format(promedio_kg) }} kg
+            </div>
+
+            <small class="text-muted">
+                Según los filtros seleccionados
+            </small>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     EXPORTAR REPORTES
+========================================== -->
+{% if tiene_rol('administrador', 'supervisor') %}
+<div class="d-flex flex-wrap justify-content-end gap-2 mb-3">
+
+    <!-- EXPORTAR PDF -->
+    <a href="{{ url_for(
+        'exportar_reporte_pdf',
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        arbol_id=arbol_id or '',
+        especie=especie,
+        calidad=calidad
+    ) }}"
+       class="btn btn-outline-danger">
+
+        <i class="bi bi-file-earmark-pdf me-1"></i>
+        Exportar PDF
+
+    </a>
+
+    <!-- EXPORTAR EXCEL -->
+    <a href="{{ url_for(
+        'exportar_reporte_excel',
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        arbol_id=arbol_id or '',
+        especie=especie,
+        calidad=calidad
+    ) }}"
+       class="btn btn-outline-success">
+
+        <i class="bi bi-file-earmark-excel me-1"></i>
+        Exportar Excel
+
+    </a>
+
+</div>
+{% endif %}
+
+
+<!-- ==========================================
+     TABLA DE RESULTADOS
+========================================== -->
+<div class="card">
+
+    <div class="card-header">
+        <i class="bi bi-table me-2"></i>
+        Resultados del reporte
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Árbol</th>
+                        <th>Especie</th>
+                        <th>Fecha</th>
+                        <th>Cantidad</th>
+                        <th>Calidad</th>
+                        <th>Responsable</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for produccion in producciones %}
+
+                    <tr>
+
+                        <!-- CONTADOR -->
+                        <td class="fw-semibold">
+                            {{ (paginacion.page - 1) * paginacion.per_page + loop.index }}
+                        </td>
+
+                        <!-- ÁRBOL -->
+                        <td>
+                            <strong>
+                                {{ produccion.arbol.codigo }}
+                            </strong>
+                        </td>
+
+                        <!-- ESPECIE -->
+                        <td>
+                            {{ produccion.arbol.especie }}
+                        </td>
+
+                        <!-- FECHA -->
+                        <td>
+                            {{ produccion.fecha_cosecha.strftime('%d/%m/%Y') }}
+                        </td>
+
+                        <!-- CANTIDAD -->
+                        <td>
+                            <strong>
+                                {{ "%.2f"|format(produccion.cantidad_kg) }} kg
+                            </strong>
+                        </td>
+
+                        <!-- CALIDAD -->
+                        <td>
+
+                            {% if produccion.calidad == 'buena' %}
+
+                            <span class="badge bg-success">
+                                Buena
+                            </span>
+
+                            {% elif produccion.calidad == 'regular' %}
+
+                            <span class="badge bg-warning text-dark">
+                                Regular
+                            </span>
+
+                            {% else %}
+
+                            <span class="badge bg-danger">
+                                Mala
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <!-- RESPONSABLE -->
+                        <td>
+                            {{ produccion.responsable.nombre if produccion.responsable else '-' }}
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="7"
+                            class="text-center text-muted py-4">
+
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            No se encontraron registros con los filtros seleccionados.
+
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- ==================================
+             PAGINACIÓN
+        ================================== -->
+        {% if paginacion.pages > 1 %}
+
+        <nav class="mt-3">
+
+            <ul class="pagination justify-content-center mb-0">
+
+                <!-- ANTERIOR -->
+                <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+
+                    <a class="page-link"
+                       href="{% if paginacion.has_prev %}{{ url_for('listar_reportes', pagina=paginacion.prev_num, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, arbol_id=arbol_id or '', especie=especie, calidad=calidad, por_pagina=por_pagina) }}{% else %}#{% endif %}">
+                        Anterior
+                    </a>
+
+                </li>
+
+
+                <!-- NÚMEROS DE PÁGINA -->
+                {% for numero in paginacion.iter_pages() %}
+
+                    {% if numero %}
+
+                    <li class="page-item {% if numero == paginacion.page %}active{% endif %}">
+
+                        <a class="page-link"
+                           href="{{ url_for('listar_reportes', pagina=numero, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, arbol_id=arbol_id or '', especie=especie, calidad=calidad, por_pagina=por_pagina) }}">
+                            {{ numero }}
+                        </a>
+
+                    </li>
+
+                    {% else %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+
+                    {% endif %}
+
+                {% endfor %}
+
+
+                <!-- SIGUIENTE -->
+                <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+
+                    <a class="page-link"
+                       href="{% if paginacion.has_next %}{{ url_for('listar_reportes', pagina=paginacion.next_num, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, arbol_id=arbol_id or '', especie=especie, calidad=calidad, por_pagina=por_pagina) }}{% else %}#{% endif %}">
+                        Siguiente
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </nav>
+
+        {% endif %}
+
+
+        <!-- CONTADOR DE REGISTROS -->
+        <div class="text-muted small mt-3">
+
+            Mostrando {{ producciones|length }} de
+            {{ paginacion.total }} registros
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

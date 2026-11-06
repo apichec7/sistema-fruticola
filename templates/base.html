@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}AgroControl{% endblock %}</title>
+
+    <!-- BOOTSTRAP -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- ICONOS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+
+    <!-- ESTILOS DEL SISTEMA -->
+    <link href="{{ url_for('static', filename='css/estilos.css') }}"
+          rel="stylesheet">
+
+</head>
+
+<body>
+
+{% set usuario_actual = obtener_usuario_actual() %}
+
+
+<!-- ==========================================
+     FONDO DEL MENÚ EN CELULARES
+========================================== -->
+
+<div class="sidebar-overlay"
+     id="sidebarOverlay">
+</div>
+
+
+<!-- ==========================================
+     MENÚ LATERAL
+========================================== -->
+
+<aside class="sidebar" id="sidebar">
+
+    <!-- LOGOTIPO -->
+    <a href="{{ url_for('inicio') }}"
+       class="sidebar-brand">
+
+        <i class="bi bi-flower3"></i>
+
+        <div>
+            <strong>AgroControl</strong>
+        </div>
+
+    </a>
+
+
+    <!-- MENÚ PRINCIPAL -->
+    <div class="sidebar-section">
+        MENÚ PRINCIPAL
+    </div>
+
+
+    <nav class="sidebar-nav">
+
+
+        <!-- DASHBOARD -->
+        <a href="{{ url_for('inicio') }}"
+           class="nav-link-custom {% if request.endpoint == 'inicio' %}active{% endif %}">
+
+            <i class="bi bi-grid-1x2"></i>
+            <span>Dashboard</span>
+
+        </a>
+
+
+        <!-- ÁRBOLES FRUTALES -->
+        <a href="{{ url_for('listar_arboles') }}"
+           class="nav-link-custom {% if request.endpoint in ['listar_arboles', 'nuevo_arbol', 'editar_arbol', 'desactivar_arbol'] %}active{% endif %}">
+
+            <i class="bi bi-tree"></i>
+            <span>Árboles frutales</span>
+
+        </a>
+
+
+        <!-- ACTIVIDADES -->
+        <a href="{{ url_for('listar_actividades') }}"
+           class="nav-link-custom {% if request.endpoint in ['listar_actividades', 'nueva_actividad', 'completar_actividad'] %}active{% endif %}">
+
+            <i class="bi bi-clipboard-check"></i>
+            <span>Actividades</span>
+
+        </a>
+
+
+        <!-- HISTORIAL -->
+        <a href="{{ url_for('historial_actividades') }}"
+           class="nav-link-custom {% if request.endpoint == 'historial_actividades' %}active{% endif %}">
+
+            <i class="bi bi-clock-history"></i>
+            <span>Historial</span>
+
+        </a>
+
+
+        <!-- ALERTAS -->
+        <a href="{{ url_for('listar_alertas') }}"
+           class="nav-link-custom {% if request.endpoint in ['listar_alertas', 'atender_alerta'] %}active{% endif %}">
+
+            <i class="bi bi-bell"></i>
+            <span>Alertas</span>
+
+        </a>
+
+
+        <!-- PRODUCCIÓN FRUTÍCOLA -->
+        <a href="{{ url_for('listar_produccion') }}"
+           class="nav-link-custom {% if request.endpoint in ['listar_produccion', 'nueva_produccion', 'editar_produccion'] %}active{% endif %}">
+
+            <i class="bi bi-basket"></i>
+            <span>Producción</span>
+
+        </a>
+
+
+        <!-- REPORTES -->
+<a href="{{ url_for('listar_reportes') }}"
+   class="nav-link-custom {% if request.endpoint == 'listar_reportes' %}active{% endif %}">
+
+    <i class="bi bi-bar-chart"></i>
+    <span>Reportes</span>
+
+</a>
+
+
+        <!-- ==================================
+             ADMINISTRACIÓN
+        ================================== -->
+
+        {% if tiene_rol('administrador') %}
+
+        <div class="sidebar-section mt-3">
+            ADMINISTRACIÓN
+        </div>
+
+
+        <!-- USUARIOS -->
+        <a href="{{ url_for('listar_usuarios') }}"
+           class="nav-link-custom {% if request.endpoint in ['listar_usuarios', 'nuevo_usuario', 'editar_usuario', 'cambiar_estado_usuario'] %}active{% endif %}">
+
+            <i class="bi bi-people"></i>
+            <span>Usuarios</span>
+
+        </a>
+
+        {% endif %}
+
+
+        {% if tiene_rol('administrador') %}
+
+<a href="{{ url_for('configuracion_sistema') }}"
+   class="nav-link-custom {% if request.endpoint == 'configuracion_sistema' %}active{% endif %}">
+
+    <i class="bi bi-gear"></i>
+    <span>Configuración</span>
+
+</a>
+
+{% endif %}
+
+
+    </nav>
+
+
+    <!-- PIE DEL MENÚ -->
+    <div class="sidebar-footer">
+
+        <i class="bi bi-shield-check"></i>
+        <span>v1.0</span>
+
+    </div>
+
+</aside>
+
+
+<!-- ==========================================
+     CONTENIDO PRINCIPAL
+========================================== -->
+
+<div class="main-wrapper">
+
+
+    <!-- ======================================
+         BARRA SUPERIOR
+    ====================================== -->
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <!-- BOTÓN MENÚ MÓVIL -->
+            <button type="button"
+                    class="menu-toggle"
+                    id="menuToggle"
+                    aria-label="Abrir menú"
+                    aria-controls="sidebar"
+                    aria-expanded="false">
+
+                <i class="bi bi-list"></i>
+
+            </button>
+
+        </div>
+
+
+        <div class="topbar-right">
+
+
+            <!-- ESTADO DEL SISTEMA -->
+            <span class="topbar-status">
+
+                <i class="bi bi-circle-fill"></i>
+                Sistema local
+
+            </span>
+
+
+            <!-- INFORMACIÓN DEL USUARIO -->
+            {% if usuario_actual %}
+
+            <div class="d-none d-md-flex flex-column text-end">
+
+                <span class="fw-semibold small">
+
+                    {{ usuario_actual.nombre }}
+
+                </span>
+
+                <span class="text-muted small">
+
+                    {% if usuario_actual.rol == 'administrador' %}
+                        Administrador
+                    {% elif usuario_actual.rol == 'supervisor' %}
+                        Supervisor
+                    {% elif usuario_actual.rol == 'operador' %}
+                        Operador
+                    {% else %}
+                        {{ usuario_actual.rol }}
+                    {% endif %}
+
+                </span>
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- AVATAR -->
+            <div class="user-avatar">
+
+                <i class="bi bi-person"></i>
+
+            </div>
+
+
+            <!-- CERRAR SESIÓN -->
+            <form method="POST"
+                  action="{{ url_for('logout') }}"
+                  class="m-0">
+
+                <!-- CSRF -->
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <button type="submit"
+                        class="btn btn-outline-secondary btn-sm">
+
+                    <i class="bi bi-box-arrow-right me-1"></i>
+                    Cerrar sesión
+
+                </button>
+
+            </form>
+
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ======================================
+         CONTENIDO DE CADA PANTALLA
+    ====================================== -->
+
+    <main class="content-area">
+
+
+        <!-- MENSAJES DEL SISTEMA -->
+        {% with mensajes = get_flashed_messages(with_categories=true) %}
+
+            {% for categoria, mensaje in mensajes %}
+
+                <div class="alert alert-{{ categoria }} alert-dismissible fade show"
+                     role="alert">
+
+                    {{ mensaje }}
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Cerrar">
+                    </button>
+
+                </div>
+
+            {% endfor %}
+
+        {% endwith %}
+
+
+        <!-- CONTENIDO DINÁMICO -->
+        {% block content %}{% endblock %}
+
+
+    </main>
+
+
+
+    <!-- ======================================
+         PIE DE PÁGINA
+    ====================================== -->
+
+    <footer class="app-footer">
+
+        AgroControl - Sistema de Producción Frutícola
+
+    </footer>
+
+
+</div>
+
+
+
+<!-- ==========================================
+     JAVASCRIPT
+========================================== -->
+
+<!-- BOOTSTRAP -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JAVASCRIPT DEL SISTEMA -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>

@@ -1,0 +1,375 @@
+
+{% extends "base.html" %}
+
+{% block title %}Reporte de alertas{% endblock %}
+
+{% block content %}
+
+<!-- ENCABEZADO -->
+<div class="page-heading">
+    <div>
+        <h2>Reporte de alertas</h2>
+        <p>Seguimiento de las alertas agrícolas.</p>
+    </div>
+</div>
+
+<!-- NAVEGACIÓN -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+
+    <a href="{{ url_for('listar_reportes') }}"
+       class="btn btn-outline-secondary">
+        Producción
+    </a>
+
+    <a href="{{ url_for('reporte_actividades') }}"
+       class="btn btn-outline-secondary">
+        Actividades
+    </a>
+
+    <a href="{{ url_for('reporte_alertas') }}"
+       class="btn btn-primary">
+        Alertas
+    </a>
+
+</div>
+
+<!-- FILTROS -->
+<div class="card mb-4">
+
+    <div class="card-header">
+        <i class="bi bi-funnel me-2"></i>
+        Filtros de búsqueda
+    </div>
+
+    <div class="card-body">
+
+        <form method="GET"
+              action="{{ url_for('reporte_alertas') }}"
+              class="row g-3 align-items-end">
+
+            <!-- ESTADO -->
+            <div class="col-md-4">
+                <label class="form-label">Estado</label>
+
+                <select name="estado" class="form-select">
+                    <option value="">Todos</option>
+
+                    <option value="pendiente"
+                        {% if estado == 'pendiente' %}selected{% endif %}>
+                        Pendiente
+                    </option>
+
+                    <option value="atendida"
+                        {% if estado == 'atendida' %}selected{% endif %}>
+                        Atendida
+                    </option>
+
+                </select>
+            </div>
+
+            <!-- TIPO -->
+            <div class="col-md-4">
+                <label class="form-label">Tipo</label>
+
+                <select name="tipo" class="form-select">
+                    <option value="">Todos los tipos</option>
+
+                    {% for item in tipos %}
+                    <option value="{{ item }}"
+                        {% if tipo == item %}selected{% endif %}>
+                        {{ item|capitalize }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <!-- POR PÁGINA -->
+            <div class="col-md-2">
+                <label class="form-label">Por página</label>
+
+                <select name="por_pagina" class="form-select">
+
+                    {% for cantidad in [10, 20, 50] %}
+
+                    <option value="{{ cantidad }}"
+                        {% if por_pagina == cantidad %}selected{% endif %}>
+                        {{ cantidad }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="col-md-2 d-flex gap-2">
+
+                <button type="submit" class="btn btn-primary">
+                    Buscar
+                </button>
+
+                <a href="{{ url_for('reporte_alertas') }}"
+                   class="btn btn-outline-secondary">
+                    Limpiar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<!-- INDICADORES -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+
+            <div class="text-muted mb-2">
+                Total de alertas
+            </div>
+
+            <div class="stat-number">
+                {{ total_alertas }}
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+
+            <div class="text-muted mb-2">
+                Pendientes
+            </div>
+
+            <div class="stat-number">
+                {{ pendientes }}
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+
+            <div class="text-muted mb-2">
+                Atendidas
+            </div>
+
+            <div class="stat-number">
+                {{ atendidas }}
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- EXPORTACIÓN CON PERMISOS -->
+{% if tiene_rol('administrador', 'supervisor') %}
+
+<div class="d-flex flex-wrap justify-content-end gap-2 mb-3">
+
+    <!-- EXPORTAR PDF -->
+    <a href="{{ url_for(
+        'exportar_alertas_pdf',
+        estado=estado,
+        tipo=tipo
+    ) }}"
+       class="btn btn-outline-danger">
+
+        <i class="bi bi-file-earmark-pdf me-1"></i>
+        Exportar PDF
+
+    </a>
+
+    <!-- EXPORTAR EXCEL -->
+    <a href="{{ url_for(
+        'exportar_alertas_excel',
+        estado=estado,
+        tipo=tipo
+    ) }}"
+       class="btn btn-outline-success">
+
+        <i class="bi bi-file-earmark-excel me-1"></i>
+        Exportar Excel
+
+    </a>
+
+</div>
+
+{% endif %}
+
+<!-- TABLA DE RESULTADOS -->
+<div class="card">
+
+    <div class="card-header">
+        <i class="bi bi-bell me-2"></i>
+        Resultados del reporte
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Árbol</th>
+                        <th>Alerta</th>
+                        <th>Tipo</th>
+                        <th>Fecha de creación</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for alerta in alertas %}
+
+                    <tr>
+
+                        <!-- NÚMERO -->
+                        <td>
+                            {{ (paginacion.page - 1) * paginacion.per_page + loop.index }}
+                        </td>
+
+                        <!-- ÁRBOL -->
+                        <td>
+                            {{ alerta.arbol.codigo if alerta.arbol else '-' }}
+                        </td>
+
+                        <!-- ALERTA -->
+                        <td>
+
+                            <strong>
+                                {{ alerta.titulo }}
+                            </strong>
+
+                            <div class="text-muted small">
+                                {{ alerta.mensaje }}
+                            </div>
+
+                        </td>
+
+                        <!-- TIPO -->
+                        <td>
+                            {{ alerta.tipo|capitalize }}
+                        </td>
+
+                        <!-- FECHA -->
+                        <td>
+                            {{ alerta.fecha_creacion.strftime('%d/%m/%Y %H:%M') if alerta.fecha_creacion else '-' }}
+                        </td>
+
+                        <!-- ESTADO -->
+                        <td>
+
+                            {% if alerta.estado == 'atendida' %}
+
+                            <span class="badge bg-success">
+                                Atendida
+                            </span>
+
+                            {% else %}
+
+                            <span class="badge bg-warning text-dark">
+                                Pendiente
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="6"
+                            class="text-center text-muted py-4">
+                            No se encontraron alertas.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- PAGINACIÓN -->
+        {% if paginacion.pages > 1 %}
+
+        <nav class="mt-3">
+
+            <ul class="pagination justify-content-center">
+
+                <!-- ANTERIOR -->
+                <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+
+                    <a class="page-link"
+                       href="{% if paginacion.has_prev %}{{ url_for('reporte_alertas', pagina=paginacion.prev_num, estado=estado, tipo=tipo, por_pagina=por_pagina) }}{% else %}#{% endif %}">
+                        Anterior
+                    </a>
+
+                </li>
+
+                <!-- NÚMEROS -->
+                {% for numero in paginacion.iter_pages() %}
+
+                    {% if numero %}
+
+                    <li class="page-item {% if numero == paginacion.page %}active{% endif %}">
+
+                        <a class="page-link"
+                           href="{{ url_for('reporte_alertas', pagina=numero, estado=estado, tipo=tipo, por_pagina=por_pagina) }}">
+                            {{ numero }}
+                        </a>
+
+                    </li>
+
+                    {% else %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+
+                    {% endif %}
+
+                {% endfor %}
+
+                <!-- SIGUIENTE -->
+                <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+
+                    <a class="page-link"
+                       href="{% if paginacion.has_next %}{{ url_for('reporte_alertas', pagina=paginacion.next_num, estado=estado, tipo=tipo, por_pagina=por_pagina) }}{% else %}#{% endif %}">
+                        Siguiente
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </nav>
+
+        {% endif %}
+
+        <!-- CONTADOR -->
+        <div class="text-muted small">
+            Mostrando {{ alertas|length }} de
+            {{ paginacion.total }} registros
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

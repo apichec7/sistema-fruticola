@@ -1,0 +1,573 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AgroControl{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================
+     ENCABEZADO
+========================================== -->
+<div class="page-heading">
+    <div>
+        <h2>Panel de control</h2>
+        <p>Resumen general de la unidad agrícola.</p>
+    </div>
+</div>
+
+
+<!-- ==========================================
+     INDICADORES DE ÁRBOLES Y ACTIVIDADES
+========================================== -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-tree me-2"></i>
+                Árboles activos
+            </div>
+
+            <div class="stat-number">
+                {{ total_arboles }}
+            </div>
+
+            <small class="text-muted">
+                Registrados en el sistema
+            </small>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-clock-history me-2"></i>
+                Actividades pendientes
+            </div>
+
+            <div class="stat-number">
+                {{ actividades_pendientes }}
+            </div>
+
+            <small class="text-muted">
+                Por realizar
+            </small>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-check-circle me-2"></i>
+                Actividades completadas
+            </div>
+
+            <div class="stat-number">
+                {{ actividades_completadas }}
+            </div>
+
+            <small class="text-muted">
+                Trabajos realizados
+            </small>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Actividades vencidas
+            </div>
+
+            <div class="stat-number text-danger">
+                {{ actividades_vencidas }}
+            </div>
+
+            <small class="text-muted">
+                Pendientes fuera de fecha
+            </small>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     INDICADORES DE PRODUCCIÓN
+========================================== -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-basket me-2"></i>
+                Producción total
+            </div>
+
+            <div class="stat-number">
+                {{ "%.2f"|format(total_kg) }} kg
+            </div>
+
+            <small class="text-muted">
+                Kilogramos cosechados
+            </small>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-calendar-check me-2"></i>
+                Cosechas registradas
+            </div>
+
+            <div class="stat-number">
+                {{ total_cosechas }}
+            </div>
+
+            <small class="text-muted">
+                Registros de producción
+            </small>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                <i class="bi bi-graph-up-arrow me-2"></i>
+                Promedio por cosecha
+            </div>
+
+            <div class="stat-number">
+                {{ "%.2f"|format(promedio_kg) }} kg
+            </div>
+
+            <small class="text-muted">
+                Rendimiento promedio registrado
+            </small>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     GRÁFICAS DE PRODUCCIÓN
+========================================== -->
+<div class="row g-3 mb-4">
+
+    <!-- PRODUCCIÓN MENSUAL -->
+    <div class="col-lg-7">
+
+        <div class="card h-100">
+
+            <div class="card-header">
+                <i class="bi bi-bar-chart me-2"></i>
+                Producción mensual
+            </div>
+
+            <div class="card-body">
+
+                <div style="position: relative; height: 320px;">
+                    <canvas id="graficaMensual"></canvas>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- PRODUCCIÓN POR ESPECIE -->
+    <div class="col-lg-5">
+
+        <div class="card h-100">
+
+            <div class="card-header">
+                <i class="bi bi-pie-chart me-2"></i>
+                Producción por especie
+            </div>
+
+            <div class="card-body">
+
+                {% if especies %}
+
+                <div style="position: relative; height: 320px;">
+                    <canvas id="graficaEspecies"></canvas>
+                </div>
+
+                {% else %}
+
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-pie-chart fs-1 d-block mb-2"></i>
+                    No hay datos de producción registrados.
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     ÚLTIMAS COSECHAS
+========================================== -->
+<div class="card mb-4">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+
+        <span>
+            <i class="bi bi-basket me-2"></i>
+            Últimas cosechas
+        </span>
+
+        <a href="{{ url_for('listar_produccion') }}"
+           class="btn btn-sm btn-outline-primary">
+            Ver todas
+        </a>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Árbol</th>
+                        <th>Especie</th>
+                        <th>Fecha</th>
+                        <th>Cantidad</th>
+                        <th>Calidad</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for produccion in ultimas_cosechas %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ produccion.arbol.codigo }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ produccion.arbol.especie }}
+                        </td>
+
+                        <td>
+                            {{ produccion.fecha_cosecha.strftime('%d/%m/%Y') }}
+                        </td>
+
+                        <td>
+                            {{ "%.2f"|format(produccion.cantidad_kg) }} kg
+                        </td>
+
+                        <td>
+
+                            {% if produccion.calidad == 'buena' %}
+
+                                <span class="badge bg-success">
+                                    Buena
+                                </span>
+
+                            {% elif produccion.calidad == 'regular' %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Regular
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-danger">
+                                    Mala
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="5"
+                            class="text-center text-muted py-4">
+                            No hay cosechas registradas.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     PRÓXIMAS ACTIVIDADES
+========================================== -->
+<div class="card mb-4">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+
+        <span>
+            <i class="bi bi-calendar-event me-2"></i>
+            Próximas actividades
+        </span>
+
+        <a href="{{ url_for('listar_actividades') }}"
+           class="btn btn-sm btn-outline-primary">
+            Ver todas
+        </a>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Árbol</th>
+                        <th>Actividad</th>
+                        <th>Fecha programada</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for actividad in proximas_actividades %}
+
+                    <tr>
+
+                        <td>
+                            {{ actividad.arbol.codigo }}
+                        </td>
+
+                        <td>
+                            {{ actividad.tipo }}
+                        </td>
+
+                        <td>
+                            {{ actividad.fecha_programada.strftime('%d/%m/%Y') }}
+                        </td>
+
+                        <td>
+                            <span class="badge bg-warning text-dark">
+                                Pendiente
+                            </span>
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="4"
+                            class="text-center text-muted py-4">
+                            No hay próximas actividades programadas.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     ACCESOS RÁPIDOS
+========================================== -->
+<div class="card">
+
+    <div class="card-body p-4">
+
+        <h5 class="mb-3">
+            Accesos rápidos
+        </h5>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            {% if tiene_rol('administrador', 'supervisor') %}
+
+            <a href="{{ url_for('nuevo_arbol') }}"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-circle me-1"></i>
+                Registrar árbol
+
+            </a>
+
+            {% endif %}
+
+
+            <a href="{{ url_for('nueva_actividad') }}"
+               class="btn btn-outline-primary">
+
+                <i class="bi bi-calendar-plus me-1"></i>
+                Nueva actividad
+
+            </a>
+
+
+            {% if tiene_rol('administrador', 'supervisor') %}
+
+            <a href="{{ url_for('nueva_produccion') }}"
+               class="btn btn-outline-success">
+
+                <i class="bi bi-basket me-1"></i>
+                Registrar cosecha
+
+            </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     GRÁFICAS CON CHART.JS
+========================================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const meses = {{ meses | tojson }};
+    const valoresMensuales = {{ valores_mensuales | tojson }};
+
+    const especies = {{ especies | tojson }};
+    const cantidadesEspecies = {{ cantidades_especies | tojson }};
+
+    const graficaMensual = document.getElementById("graficaMensual");
+    const graficaEspecies = document.getElementById("graficaEspecies");
+
+    if (typeof Chart === "undefined") {
+        console.error("No se pudo cargar Chart.js");
+        return;
+    }
+
+    // PRODUCCIÓN MENSUAL
+    if (graficaMensual) {
+
+        new Chart(graficaMensual, {
+            type: "bar",
+
+            data: {
+                labels: meses,
+
+                datasets: [{
+                    label: "Producción (kg)",
+                    data: valoresMensuales,
+                    backgroundColor: "rgba(16, 140, 110, 0.75)",
+                    borderColor: "rgba(16, 140, 110, 1)",
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: "Kilogramos"
+                        }
+                    }
+                }
+            }
+        });
+
+    }
+
+
+    // PRODUCCIÓN POR ESPECIE
+    if (graficaEspecies && especies.length > 0) {
+
+        const colores = [
+            "#108C6E",
+            "#34B68A",
+            "#F0B84B",
+            "#4D9DE0",
+            "#9B79D0",
+            "#E57A67",
+            "#7B9E47",
+            "#52B8B2"
+        ];
+
+        new Chart(graficaEspecies, {
+            type: "doughnut",
+
+            data: {
+                labels: especies,
+
+                datasets: [{
+                    data: cantidadesEspecies,
+                    backgroundColor: especies.map(
+                        (_, indice) => colores[indice % colores.length]
+                    ),
+                    borderWidth: 2
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                }
+            }
+        });
+
+    }
+
+});
+</script>
+
+{% endblock %}

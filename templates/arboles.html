@@ -1,0 +1,188 @@
+
+{% extends "base.html" %}
+
+{% block title %}Árboles - AgroControl{% endblock %}
+{% block page_title %}Árboles frutales{% endblock %}
+
+{% block content %}
+
+<!-- ==========================================
+     ENCABEZADO
+========================================== -->
+<div class="page-heading">
+
+    <div>
+        <h2>Gestión de árboles</h2>
+        <p>Consulta y administra los árboles registrados.</p>
+    </div>
+
+    <!-- SOLO ADMINISTRADOR Y SUPERVISOR -->
+    {% if tiene_rol('administrador', 'supervisor') %}
+
+    <a href="{{ url_for('nuevo_arbol') }}"
+       class="btn btn-primary">
+
+        <i class="bi bi-plus-lg me-1"></i>
+        Nuevo árbol
+
+    </a>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ==========================================
+     TABLA DE ÁRBOLES
+========================================== -->
+<div class="card">
+
+    <div class="card-body p-3">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Especie</th>
+                        <th>Variedad</th>
+                        <th>Ubicación</th>
+                        <th>Estado</th>
+
+                        <!-- ACCIONES SOLO PARA USUARIOS AUTORIZADOS -->
+                        {% if tiene_rol('administrador', 'supervisor') %}
+                        <th>Acciones</th>
+                        {% endif %}
+
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for arbol in arboles %}
+
+                    <tr>
+
+                        <!-- CÓDIGO -->
+                        <td>
+                            <strong>{{ arbol.codigo }}</strong>
+                        </td>
+
+                        <!-- ESPECIE -->
+                        <td>
+                            {{ arbol.especie }}
+                        </td>
+
+                        <!-- VARIEDAD -->
+                        <td>
+                            {{ arbol.variedad or '-' }}
+                        </td>
+
+                        <!-- UBICACIÓN -->
+                        <td>
+                            {{ arbol.ubicacion or '-' }}
+                        </td>
+
+                        <!-- ESTADO -->
+                        <td>
+
+                            {% if arbol.estado == 'activo' %}
+
+                                <span class="badge bg-success">
+                                    Activo
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    Inactivo
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- ==================================
+                             BOTONES SEGÚN EL ROL
+                        ================================== -->
+                        {% if tiene_rol('administrador', 'supervisor') %}
+
+                        <td>
+
+                            <div class="d-flex gap-2 flex-wrap">
+
+                                <!-- EDITAR:
+                                     ADMINISTRADOR Y SUPERVISOR -->
+                                <a href="{{ url_for('editar_arbol', id=arbol.id) }}"
+                                   class="btn btn-sm btn-outline-primary">
+
+                                    <i class="bi bi-pencil"></i>
+                                    Editar
+
+                                </a>
+
+
+                                <!-- DESACTIVAR:
+                                     SOLO ADMINISTRADOR -->
+                                {% if tiene_rol('administrador') and arbol.estado == 'activo' %}
+
+                                <form method="POST"
+                                      action="{{ url_for('desactivar_arbol', id=arbol.id) }}"
+                                      onsubmit="return confirm('¿Desactivar este árbol?');">
+
+                                    <!-- PROTECCIÓN CSRF -->
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="{{ csrf_token() }}">
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger">
+
+                                        <i class="bi bi-x-circle"></i>
+                                        Desactivar
+
+                                    </button>
+
+                                </form>
+
+                                {% endif %}
+
+                            </div>
+
+                        </td>
+
+                        {% endif %}
+
+                    </tr>
+
+                    {% else %}
+
+                    <!-- SIN REGISTROS -->
+                    <tr>
+
+                        <td colspan="{% if tiene_rol('administrador', 'supervisor') %}6{% else %}5{% endif %}"
+                            class="text-center text-muted py-4">
+
+                            <i class="bi bi-tree me-1"></i>
+                            No hay árboles registrados.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

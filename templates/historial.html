@@ -1,0 +1,283 @@
+
+{% extends "base.html" %}
+
+{% block title %}Historial - AgroControl{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h2>Historial de actividades</h2>
+        <p>Consulta de actividades agrícolas registradas.</p>
+    </div>
+</div>
+
+<!-- INDICADORES -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                Total de actividades
+            </div>
+            <div class="stat-number">{{ total }}</div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                Actividades completadas
+            </div>
+            <div class="stat-number">{{ completadas }}</div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="text-muted mb-2">
+                Actividades pendientes
+            </div>
+            <div class="stat-number">{{ pendientes }}</div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card">
+
+    <div class="card-header py-3">
+        <h5 class="mb-0">
+            <i class="bi bi-clock-history me-2"></i>
+            Registros de actividades
+        </h5>
+    </div>
+
+    <div class="card-body">
+
+        <!-- FILTROS -->
+        <form method="GET"
+              action="{{ url_for('historial_actividades') }}"
+              class="row g-3 align-items-end mb-4">
+
+            <div class="col-md-4">
+                <label class="form-label">Árbol</label>
+
+                <select name="arbol_id" class="form-select">
+                    <option value="">Todos los árboles</option>
+
+                    {% for arbol in arboles %}
+                    <option value="{{ arbol.id }}"
+                        {% if arbol_id == arbol.id %}selected{% endif %}>
+                        {{ arbol.codigo }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Estado</label>
+
+                <select name="estado" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="pendiente"
+                        {% if estado == 'pendiente' %}selected{% endif %}>
+                        Pendiente
+                    </option>
+                    <option value="completada"
+                        {% if estado == 'completada' %}selected{% endif %}>
+                        Completada
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Mostrar</label>
+
+                <select name="por_pagina" class="form-select">
+                    {% for cantidad in [10, 20, 50] %}
+                    <option value="{{ cantidad }}"
+                        {% if por_pagina == cantidad %}selected{% endif %}>
+                        {{ cantidad }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search me-1"></i>
+                    Buscar
+                </button>
+
+                <a href="{{ url_for('historial_actividades') }}"
+                   class="btn btn-outline-secondary">
+                    Limpiar
+                </a>
+            </div>
+
+        </form>
+
+        <!-- CONTADOR -->
+        <div class="text-muted small mb-3">
+            {% if paginacion.total > 0 %}
+                Mostrando
+                {{ (paginacion.page - 1) * paginacion.per_page + 1 }}
+                -
+                {{ (paginacion.page - 1) * paginacion.per_page + actividades|length }}
+                de {{ paginacion.total }} registros
+            {% else %}
+                Mostrando 0 de 0 registros
+            {% endif %}
+        </div>
+
+        <!-- TABLA -->
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Árbol</th>
+                        <th>Actividad</th>
+                        <th>Responsable</th>
+                        <th>Fecha programada</th>
+                        <th>Fecha realizada</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for actividad in actividades %}
+                    <tr>
+
+                        <td class="fw-semibold">
+                            {{ (paginacion.page - 1) * paginacion.per_page + loop.index }}
+                        </td>
+
+                        <td>
+                            {{ actividad.arbol.codigo }}
+                        </td>
+
+                        <td>
+                            <div class="fw-semibold">
+                                {{ actividad.tipo }}
+                            </div>
+
+                            <div class="text-muted small">
+                                {{ actividad.descripcion or 'Sin descripción' }}
+                            </div>
+                        </td>
+
+                        <td>
+                            {% if actividad.responsable %}
+                                {{ actividad.responsable.nombre }}
+                            {% else %}
+                                Sin asignar
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ actividad.fecha_programada.strftime('%d/%m/%Y') }}
+                        </td>
+
+                        <td>
+                            {% if actividad.fecha_realizada %}
+                                {{ actividad.fecha_realizada.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if actividad.estado == 'completada' %}
+                                <span class="badge bg-success">
+                                    Completada
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    Pendiente
+                                </span>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="7"
+                            class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            No se encontraron actividades.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- PAGINACIÓN -->
+        {% if paginacion.pages > 1 %}
+        <nav aria-label="Paginación de historial" class="mt-4">
+
+            <ul class="pagination justify-content-end flex-wrap">
+
+                <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('historial_actividades',
+                           pagina=paginacion.prev_num,
+                           por_pagina=por_pagina,
+                           arbol_id=arbol_id or '',
+                           estado=estado) if paginacion.has_prev else '#' }}">
+                        Anterior
+                    </a>
+                </li>
+
+                {% for numero in paginacion.iter_pages(
+                    left_edge=1,
+                    right_edge=1,
+                    left_current=2,
+                    right_current=2
+                ) %}
+
+                    {% if numero %}
+                    <li class="page-item {% if numero == paginacion.page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('historial_actividades',
+                               pagina=numero,
+                               por_pagina=por_pagina,
+                               arbol_id=arbol_id or '',
+                               estado=estado) }}">
+                            {{ numero }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+
+                {% endfor %}
+
+                <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('historial_actividades',
+                           pagina=paginacion.next_num,
+                           por_pagina=por_pagina,
+                           arbol_id=arbol_id or '',
+                           estado=estado) if paginacion.has_next else '#' }}">
+                        Siguiente
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

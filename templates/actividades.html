@@ -1,0 +1,90 @@
+
+{% extends "base.html" %}
+
+{% block title %}Actividades - AgroControl{% endblock %}
+{% block page_title %}Actividades agrícolas{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <div>
+        <h2>Actividades agrícolas</h2>
+        <p>Control de tareas y seguimiento de los árboles.</p>
+    </div>
+
+    <a href="{{ url_for('nueva_actividad') }}"
+       class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Nueva actividad
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-3">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Árbol</th>
+                        <th>Actividad</th>
+                        <th>Descripción</th>
+                        <th>Fecha programada</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for actividad in actividades %}
+                    <tr>
+                        <td>
+                            <strong>{{ actividad.arbol.codigo }}</strong>
+                        </td>
+                        <td>{{ actividad.tipo }}</td>
+                        <td>{{ actividad.descripcion or '-' }}</td>
+                        <td>{{ actividad.fecha_programada }}</td>
+
+                        <td>
+                            {% if actividad.estado == 'completada' %}
+                                <span class="badge bg-success">
+                                    Completada
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    Pendiente
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if actividad.estado != 'completada' %}
+                            <form method="POST"
+                                  action="{{ url_for('completar_actividad', id=actividad.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-check-circle"></i>
+                                    Completar
+                                </button>
+                            </form>
+                            {% else %}
+                                <span class="text-muted">Finalizada</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6"
+                            class="text-center text-muted py-4">
+                            No hay actividades registradas.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

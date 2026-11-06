@@ -1,0 +1,35 @@
+# Entorno virtual
+venv/
+.venv/
+
+# Variables de entorno y credenciales
+.env
+.env.*
+!.env.example
+
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]
+*.log
+
+# Caché de pruebas
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Archivos de configuración local
+.vscode/
+.idea/
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+# Bases de datos y respaldos locales
+*.db
+*.sqlite
+*.sqlite3
+*.backup
+*.dump
