@@ -1,3 +1,10 @@
+
+import os
+
+os.environ["TEST_DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["SECRET_KEY"] = "clave-exclusiva-para-pruebas"
+
+
 import pytest
 from flask import Flask
 from models import db
