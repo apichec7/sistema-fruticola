@@ -33,3 +33,9 @@ Thumbs.db
 *.sqlite3
 *.backup
 *.dump
+
+.coverage
+coverage.xml
+pytest-results.xml
+.pytest_cache/
+htmlcov/

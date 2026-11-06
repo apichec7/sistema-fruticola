@@ -1,0 +1,12 @@
+
+[run]
+source =
+    app
+    models
+    servicios_alertas
+branch = True
+
+[report]
+show_missing = True
+exclude_lines =
+    pragma: no cover
